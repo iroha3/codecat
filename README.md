@@ -13,17 +13,15 @@
 
 </div>
 
-`codecat` is a command-line utility that merges code from a repository into a single text file. It respects the rules defined in your `.gitignore`, making it suitable for creating a clean context bundle of your project's source code.
+`codecat` is a command-line utility that can merge a code repository into a single text file and split it back. It respects the rules defined in your `.gitignore`, making it suitable for creating a clean context bundle of your project's source code for LLM analysis.
 
 ## Features
 
-- Recursively walks through directories.
-- Respects `.gitignore`, `.ignore`, global ignore rules, etc., powered by the `ignore` crate.
-- Concatenates file contents into a single output file.
-- Adds clear delimiters (`--- START FILE: path/to/file ---` and `--- END FILE: path/to/file ---`) for each file.
-- Attempts to read files as UTF-8, skipping non-UTF8 files with a warning.
-- Simple command-line interface.
-- Cross-platform (Windows, macOS, Linux).
+- **Merge & Split**: Easily bundle your project or restore it from a bundle.
+- **Ignore Rules**: Respects `.gitignore`, `.ignore`, global ignore rules, etc., powered by the `ignore` crate.
+- **Clear Delimiters**: Adds clear markers (`--- START FILE: path/to/file ---` and `--- END FILE: path/to/file ---`) for LLM readability.
+- **UTF-8 Support**: Attempts to read files as UTF-8, skipping non-UTF8 files with a warning.
+- **Cross-platform**: Works on Windows, macOS, and Linux.
 
 ## Installation
 
@@ -35,7 +33,9 @@ cargo install codecat
 
 ## Usage
 
-### Basic Usage
+`codecat` automatically detects whether to merge or split based on the input path.
+
+### 1. Merging a Directory
 
 Navigate to your project directory or provide the path to it:
 
@@ -43,24 +43,28 @@ Navigate to your project directory or provide the path to it:
 codecat /path/to/your/project
 ```
 
-Or, if you are already in the project directory:
-
-```bash
-codecat .
-```
-
 By default, `codecat` will create a file named `<project_directory_name>.codecat.txt` in the _parent_ directory of your project.
-
-### Specifying Output File
 
 You can specify a custom output file path using the `-o` or `--output` flag:
 
 ```bash
-codecat /path/to/your/project -o /path/to/output/bundle.txt
+codecat . -o context.txt
 ```
 
+### 2. Splitting a Merged File
+
+To restore a directory from a `.codecat.txt` file:
+
 ```bash
-codecat . --output context.txt
+codecat my_project.codecat.txt
+```
+
+By default, `codecat` will create a directory with the same name as the file (excluding the `.codecat.txt` suffix) in the same location.
+
+You can specify a custom output directory using the `-o` or `--output` flag:
+
+```bash
+codecat bundle.codecat.txt -o ./restored_project
 ```
 
 ## Example Output Structure

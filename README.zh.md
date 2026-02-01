@@ -13,17 +13,15 @@
 
 </div>
 
-`codecat` 是一个命令行工具，它可以将代码仓库的代码合并到一个单独的文本文件中。它会遵循你的 `.gitignore` 中定义的规则，适合为你的项目源代码创建一个干净的上下文包。
+`codecat` 是一个命令行工具，它可以将代码仓库合并到一个单独的文本文件中，也可以将其拆分还原。它会遵循你的 `.gitignore` 中定义的规则，非常适合为 LLM 代码分析提供干净的项目上下文。
 
 ## 功能特性
 
-- 递归遍历目录。
-- 遵循 `.gitignore`、`.ignore`、全局忽略规则等，由强大的 `ignore` crate 驱动。
-- 将文件内容合并到单个输出文件中。
-- 为每个文件添加清晰的分隔符（`--- START FILE: path/to/file ---` 和 `--- END FILE: path/to/file ---`）。
-- 尝试将文件读取为 UTF-8 编码，对于非 UTF-8 文件会跳过并显示警告。
-- 简单的命令行接口。
-- 跨平台（Windows, macOS, Linux）。
+- **合并与拆分**：轻松打包项目或从打包文件中还原。
+- **遵循忽略规则**：支持 `.gitignore`、`.ignore`、全局忽略规则等，由强大的 `ignore` crate 驱动。
+- **清晰的分隔符**：为每个文件添加清晰的标记（`--- START FILE: path/to/file ---` 和 `--- END FILE: path/to/file ---`），便于 LLM 阅读。
+- **UTF-8 支持**：尝试将文件读取为 UTF-8 编码，对于非 UTF-8 文件会跳过并显示警告。
+- **跨平台**：支持 Windows, macOS, Linux。
 
 ## 安装
 
@@ -35,7 +33,9 @@ cargo install codecat
 
 ## 使用方法
 
-### 基本用法
+`codecat` 会根据输入路径自动检测是执行合并还是拆分操作。
+
+### 1. 合并目录
 
 导航到你的项目目录或提供项目路径：
 
@@ -43,24 +43,28 @@ cargo install codecat
 codecat /path/to/your/project
 ```
 
-或者，如果你已经在项目目录中：
-
-```bash
-codecat .
-```
-
 默认情况下，`codecat` 会在你的项目的*父*目录下创建一个名为 `<项目目录名>.codecat.txt` 的文件。
-
-### 指定输出文件
 
 你可以使用 `-o` 或 `--output` 标志指定自定义的输出文件路径：
 
 ```bash
-codecat /path/to/your/project -o /path/to/output/bundle.txt
+codecat . -o context.txt
 ```
 
+### 2. 拆分合并文件
+
+从 `.codecat.txt` 文件还原目录结构：
+
 ```bash
-codecat . --output context.txt
+codecat my_project.codecat.txt
+```
+
+默认情况下，`codecat` 会在当前位置创建一个与文件名同名（去掉 `.codecat.txt` 后缀）的目录。
+
+你可以使用 `-o` 或 `--output` 标志指定自定义的输出目录：
+
+```bash
+codecat bundle.codecat.txt -o ./restored_project
 ```
 
 ## 输出示例结构
