@@ -2,11 +2,14 @@
 name = "codecat"
 version = "0.1.2"
 edition = "2024"
+authors = ["iroha3"]
 license = "MIT OR Apache-2.0"
-description = "「 Merge Code Repository into a Single File | Respects `.gitignore` | Ideal for LLM Code Analysis 」"
+description = "Merge a code repository into a single file (and split it back), respecting .gitignore. Ideal for LLM code analysis."
 readme = "README.md"
-repository = "https://github.com/Plasma-Blue/codecat"
-keywords = ["LLM", "string", "CLI"]
+repository = "https://github.com/iroha3/codecat"
+homepage = "https://github.com/iroha3/codecat"
+keywords = ["llm", "cli", "code-merge", "context", "ai"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
