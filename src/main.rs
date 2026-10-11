@@ -93,43 +93,43 @@ fn merge_directory(input_dir: &Path, output_file: &Option<PathBuf>) -> Result<()
     for result in walker {
         let entry = result?;
         let path = entry.path();
-        if path.is_file() {
-            if let Ok(relative_path) = path.strip_prefix(&canonical_input_path) {
-                let relative_path_str = relative_path.to_string_lossy();
-                println!("Adding file: {}", relative_path_str);
+        if path.is_file()
+            && let Ok(relative_path) = path.strip_prefix(&canonical_input_path)
+        {
+            let relative_path_str = relative_path.to_string_lossy();
+            println!("Adding file: {}", relative_path_str);
 
-                writeln!(
-                    writer,
-                    "{}{}{}",
-                    START_MARKER_PREFIX, relative_path_str, END_MARKER_SUFFIX
-                )?;
+            writeln!(
+                writer,
+                "{}{}{}",
+                START_MARKER_PREFIX, relative_path_str, END_MARKER_SUFFIX
+            )?;
 
-                match fs::read_to_string(path) {
-                    Ok(content) => {
-                        writer.write_all(content.as_bytes())?;
-                        if !content.ends_with('\n') {
-                            writeln!(writer)?;
-                        }
-                    }
-                    Err(e) if e.kind() == io::ErrorKind::InvalidData => {
-                        eprintln!("Warning: Skipping non-UTF8 file: {}", relative_path_str);
-                        writeln!(writer, "[Skipped non-UTF8 file]")?;
-                    }
-                    Err(e) => {
-                        eprintln!(
-                            "Warning: Failed to read file {}: {}. Skipping.",
-                            relative_path_str, e
-                        );
-                        writeln!(writer, "[Skipped due to read error: {}]", e)?;
+            match fs::read_to_string(path) {
+                Ok(content) => {
+                    writer.write_all(content.as_bytes())?;
+                    if !content.ends_with('\n') {
+                        writeln!(writer)?;
                     }
                 }
-                writeln!(
-                    writer,
-                    "--- END FILE: {}{}",
-                    relative_path_str, END_MARKER_SUFFIX
-                )?;
-                writeln!(writer)?;
+                Err(e) if e.kind() == io::ErrorKind::InvalidData => {
+                    eprintln!("Warning: Skipping non-UTF8 file: {}", relative_path_str);
+                    writeln!(writer, "[Skipped non-UTF8 file]")?;
+                }
+                Err(e) => {
+                    eprintln!(
+                        "Warning: Failed to read file {}: {}. Skipping.",
+                        relative_path_str, e
+                    );
+                    writeln!(writer, "[Skipped due to read error: {}]", e)?;
+                }
             }
+            writeln!(
+                writer,
+                "--- END FILE: {}{}",
+                relative_path_str, END_MARKER_SUFFIX
+            )?;
+            writeln!(writer)?;
         }
     }
 
