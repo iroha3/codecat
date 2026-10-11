@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use ignore::WalkBuilder;
 use std::fs::{self, File};
@@ -31,11 +31,7 @@ fn main() -> Result<()> {
         // 分支 1: 合并目录
         println!("Input is a directory. Running merge operation...");
         merge_directory(input_path, &cli.output)?;
-    } else if input_path.is_file()
-        && input_path
-            .to_string_lossy()
-            .ends_with(MERGE_FILE_SUFFIX)
-    {
+    } else if input_path.is_file() && input_path.to_string_lossy().ends_with(MERGE_FILE_SUFFIX) {
         // 分支 2: 拆分文件
         println!("Input is a merge file. Running split operation...");
         split_file(input_path, &cli.output)?;
@@ -138,10 +134,7 @@ fn merge_directory(input_dir: &Path, output_file: &Option<PathBuf>) -> Result<()
     }
 
     writer.flush().context("Failed to flush output writer")?;
-    println!(
-        "Successfully merged directory to {}",
-        output_path.display()
-    );
+    println!("Successfully merged directory to {}", output_path.display());
     Ok(())
 }
 
@@ -165,41 +158,52 @@ fn split_file(input_file: &Path, output_dir: &Option<PathBuf>) -> Result<()> {
             output_root.display()
         );
     }
-    fs::create_dir_all(&output_root)
-        .with_context(|| format!("Failed to create output directory '{}'", output_root.display()))?;
-    
-    println!("Output will be written to directory: {}", output_root.display());
+    fs::create_dir_all(&output_root).with_context(|| {
+        format!(
+            "Failed to create output directory '{}'",
+            output_root.display()
+        )
+    })?;
+
+    println!(
+        "Output will be written to directory: {}",
+        output_root.display()
+    );
 
     // --- 文件读取与解析 ---
     let file = File::open(input_file)
         .with_context(|| format!("Failed to open input file '{}'", input_file.display()))?;
     let reader = BufReader::new(file);
-    
+
     let mut current_file_writer: Option<BufWriter<File>> = None;
     let mut file_count = 0;
 
     for line in reader.lines() {
         let line = line?;
 
-        if let Some(path_str) = line.strip_prefix(START_MARKER_PREFIX).and_then(|s| s.strip_suffix(END_MARKER_SUFFIX)) {
+        if let Some(path_str) = line
+            .strip_prefix(START_MARKER_PREFIX)
+            .and_then(|s| s.strip_suffix(END_MARKER_SUFFIX))
+        {
             // 遇到新的 START 标记
             let relative_path = PathBuf::from(path_str);
             let absolute_path = output_root.join(&relative_path);
 
             if let Some(parent) = absolute_path.parent() {
                 fs::create_dir_all(parent).with_context(|| {
-                    format!("Failed to create parent directory for '{}'", absolute_path.display())
+                    format!(
+                        "Failed to create parent directory for '{}'",
+                        absolute_path.display()
+                    )
                 })?;
             }
-            
-            let new_file = File::create(&absolute_path).with_context(|| {
-                format!("Failed to create file '{}'", absolute_path.display())
-            })?;
+
+            let new_file = File::create(&absolute_path)
+                .with_context(|| format!("Failed to create file '{}'", absolute_path.display()))?;
 
             println!("Creating file: {}", relative_path.display());
             current_file_writer = Some(BufWriter::new(new_file));
             file_count += 1;
-
         } else if line.starts_with("--- END FILE:") {
             // 遇到 END 标记，关闭当前文件写入器
             if let Some(mut writer) = current_file_writer.take() {
@@ -211,6 +215,10 @@ fn split_file(input_file: &Path, output_dir: &Option<PathBuf>) -> Result<()> {
         }
     }
 
-    println!("Successfully split file into {} files in {}", file_count, output_root.display());
+    println!(
+        "Successfully split file into {} files in {}",
+        file_count,
+        output_root.display()
+    );
     Ok(())
 }
